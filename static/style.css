@@ -1,0 +1,99 @@
+html {
+  font-family: Helvetica;
+  display: inline-block;
+  margin: 0px auto;
+  text-align: center;
+  background-color: #dbdbdb;
+}
+
+ul {
+  background-color: #ffffff;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  border-radius: 10px;
+  padding: 20px;
+  width: 500px;
+  box-shadow: -2px -2px 5px rgba(0,0,0,0.5),
+              3px 3px 5px rgba(0,0,0,0.07);
+}
+
+form input {
+  position: relative;
+  list-style: none;
+  margin: 10px;
+}
+
+ul li {
+  position: relative;
+  list-style: none;
+  text-align: center;
+  margin: 15px;
+}
+
+ul li label {
+  position: relative;
+}
+
+.btns {
+  display: flex;
+  margin-top: 10%;
+  justify-content: center;
+  min-height: 1vh;
+}
+
+.switch-btn {
+  display: inline-block;
+  width: 72px; /* ширина */
+  height: 38px; /* высота */
+  border-radius: 19px; /* радиус скругления */
+  background: #bfbfbf; /* цвет фона */
+  z-index: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition-duration: 300ms; /* анимация */
+}
+
+.switch-btn::after {
+  content: "";
+  height: 32px; /* высота кнопки */
+  width: 32px; /* ширина кнопки */
+  border-radius: 17px;
+  background: #fff; /* цвет кнопки */
+  top: 3px; /* положение кнопки по вертикали относительно основы */
+  left: 3px; /* положение кнопки по горизонтали относительно основы */
+  transition-duration: 300ms; /* анимация */
+  position: absolute;
+  z-index: 1;
+}
+
+.switch-on {
+  background: #118c4e;
+}
+
+.switch-on::after {
+  left: 37px;
+}
+
+.cuteButton {
+    -webkit-transition-duration: 0.4s; /* Safari */
+    transition-duration: 0.4s;
+    color: black;
+    background-color: white;
+    font-size: 22px;
+}
+
+.cuteButton:hover {
+    background-color: #555555; /* Green */
+    color: white;
+}
+
+input[type="text"] {
+   border: 2px solid black;
+   border-radius: 5px;
+}

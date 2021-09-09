@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pi Router</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+<body>
+  <div class="btns">
+    <ul>
+      <li>
+        <img src="/images/dpi.svg" height="100px">
+        <p>DPI - State</p>
+        <div class="switch-btn" id="switchbtn-dpi"></div>
+      </li>
+      <li>
+        <img src="/images/tor1.svg" height="100px">
+        <p>TOR - State</p>
+        <div class="switch-btn" id="switchbtn-tor"></div>
+      </li>
+      <li>
+        <img src="/images/tor2.svg" height="100px">
+        <p>TOR DNS - State</p>
+        <div class="switch-btn" id="switchbtn-tordns"></div>
+      </li>
+      <li>
+        <div>
+          <form action="" method="post">
+            <label for="domain">Unblock domain:</label>
+               <input type="text" id="domain" name="domain" autocomplete="off" /><br />
+               <label for="domain">Unblock subnet:</label>
+               <input type="text" id="subnet" name="subnet" autocomplete="off" /><br />
+          </form>
+          <button id="buttonSub" class="cuteButton">Apply</button>
+        </div>
+      </li>
+    </ul>
+  </div>
+<script type="text/javascript">
+let switchStatsArray = {{.}}
+</script>
+<script src="/static/script.js"></script>
+</body>
+</html>
