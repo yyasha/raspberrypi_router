@@ -17,7 +17,7 @@ type Switches struct {
 }
 
 var sw = Switches{true, true, false}
-var old_sw = Switches{true, true, false}
+var old_sw = Switches{false, false, false}
 var swi [3]bool
 
 func main() {
@@ -56,8 +56,13 @@ func unblock(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()                     // Parses the request body
     domain := r.Form.Get("domain")
     subnet := r.Form.Get("subnet")
-    fmt.Println(domain)
-    fmt.Println(subnet)
+
+	if domain != "" {
+		fmt.Println("Unblocking domain:" + domain)
+	}
+	if subnet != "" {
+		fmt.Println("Unblocking subnet:" + subnet)
+	}
 }
 
 func switchState(w http.ResponseWriter, r *http.Request)  {
