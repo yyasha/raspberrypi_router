@@ -52,16 +52,27 @@ func homepage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func unblock(w http.ResponseWriter, r *http.Request) {                            /// доделать ///
+func unblock(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()                     // Parses the request body
     domain := r.Form.Get("domain")
     subnet := r.Form.Get("subnet")
 
 	if domain != "" {
-		fmt.Println("Unblocking domain: " + domain)
+		fmt.Println("Unblocking domain: " + domain)   // iptables -t nat -A OUTPUT -p tcp --syn -d rutracker.org -j REDIRECT --to-ports 9040
+		cmd := exec.Command("iptables", "-t", "nat", "-A", "OUTPUT", "-p", "tcp", "--syn", "-d", domain, "-j", "REDIRECT", "--to-ports", "9040")
+        err := cmd.Run()
+        if err != nil {
+            log.Println(err)
+        }
 	}
+
 	if subnet != "" {
 		fmt.Println("Unblocking subnet: " + subnet)
+		cmd := exec.Command("ipset", "-A", "tornet", subnet)
+        err := cmd.Run()
+        if err != nil {
+            log.Println(err)
+        }
 	}
 }
 
@@ -178,17 +189,17 @@ func configureIptables()  {
 func addDefaultIptables()  {
 	fmt.Println("executing the command 'echo '1' | sudo tee /proc/sys/net/ipv4/conf/eth0/forwarding'")
 	// echo '1' | sudo tee /proc/sys/net/ipv4/conf/eth0/forwarding
-	err := exec.Command("echo", "'1'", "|", "sudo", "tee", "/proc/sys/net/ipv4/conf/eth0/forwarding").Run()
+	err := exec.Command("/bin/bash", "scripts/startDefaultIptables.sh").Run()
     if err != nil {
         log.Fatal(err)
     }
 
 	fmt.Println("executing the command 'iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE'")
 	// iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-	err = exec.Command("iptables", "-t", "nat", "-A", "POSTROUTING", "-o", "eth0", "-j", "MASQUERADE").Run()
-    if err != nil {
-        log.Fatal(err)
-    }
+	// err = exec.Command("iptables", "-t", "nat", "-A", "POSTROUTING", "-o", "eth0", "-j", "MASQUERADE").Run()
+    // if err != nil {
+    //     log.Fatal(err)
+    // }
 }
 
 func iptablesDelAll() {
@@ -215,7 +226,7 @@ func addDpi()  {
 	fmt.Println("executing the command '/opt/nginxdpi/bin/openresty -c /opt/nginxdpi/cfg/nginx.conf'")
 	fmt.Println("executing the command 'iptables -t nat -A PREROUTING -i eth0 -p tcp -m tcp --dport 443 -j REDIRECT --to-ports 30443'")
 	fmt.Println("executing the command 'iptables -t nat -A PREROUTING -i eth0 -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 30443'")
-	err := exec.Command("/bin/bash", "startDPI.sh").Run()      ///    переписать    ///
+	err := exec.Command("/bin/bash", "scripts/startDPI.sh").Run()      ///    переписать    ///
     if err != nil {
         log.Fatal(err)
     }
@@ -225,7 +236,7 @@ func addTor() {
 	// ON redirect sites to tor
 	// iptables -t nat -A OUTPUT -p tcp --syn -m set --match-set tornet dst -j REDIRECT --to-ports 9040
 	fmt.Println("executing the command 'iptables -t nat -A OUTPUT -p tcp --syn -m set --match-set tornet dst -j REDIRECT --to-ports 9040'")
-	err := exec.Command("iptables", "-t", "nat", "-A", "OUTPUT", "-p", "tcp", "--syn", "-m", "set", "--match-set", "tornet", "dst", "-j", "REDIRECT", "--to-ports", "9040").Run()
+	err := exec.Command("/bin/bash", "scripts/startTor.sh").Run()
     if err != nil {
         log.Fatal(err)
     }
@@ -235,16 +246,18 @@ func addTorDns()  {
 	// ON redirect dns requests to tor
 	// iptables -t nat -I PREROUTING -i eth0 -p udp --dport 53 -j DNAT --to-destination 192.168.1.66:9053
 	fmt.Println("executing the command 'iptables -t nat -I PREROUTING -i eth0 -p udp --dport 53 -j DNAT --to-destination 192.168.1.66:9053'")
-	err := exec.Command("iptables", "-t", "nat", "-I", "PREROUTING", "-i", "eth0", "-p", "udp", "--dport", "53", "-j", "DNAT", "--to-destination", "192.168.1.66:9053").Run()
+	err := exec.Command("/bin/bash", "scripts/startTorDns.sh").Run()
     if err != nil {
         log.Fatal(err)
     }
 }
 
 func addDefaultDns()  {
+	// echo 1 > /proc/sys/net/ipv4/ip_forward 
+	fmt.Println("executing the command 'echo 1 > /proc/sys/net/ipv4/ip_forward'")
 	// iptables -t nat -I PREROUTING -i eth0 -p udp --dport 53 -j DNAT --to-destination 192.168.1.8:53
 	fmt.Println("executing the command 'iptables -t nat -I PREROUTING -i eth0 -p udp --dport 53 -j DNAT --to-destination 192.168.1.8:53'")
-	err := exec.Command("iptables", "-t", "nat", "-I", "PREROUTING", "-i", "eth0", "-p", "udp", "--dport", "53", "-j", "DNAT", "--to-destination", "192.168.1.8:53").Run()
+	err := exec.Command("/bin/bash", "scripts/startDefaultDns.sh").Run()
     if err != nil {
         log.Fatal(err)
     }
