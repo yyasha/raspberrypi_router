@@ -23,7 +23,7 @@ var swi [3]bool
 func main() {
 	updateSwitches()
 
-	// go filesToIptables()
+	go filesToIptables()
 
 	fmt.Println("Server started!")
 
@@ -52,16 +52,16 @@ func homepage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func unblock(w http.ResponseWriter, r *http.Request) {
+func unblock(w http.ResponseWriter, r *http.Request) {                            /// доделать ///
 	r.ParseForm()                     // Parses the request body
     domain := r.Form.Get("domain")
     subnet := r.Form.Get("subnet")
 
 	if domain != "" {
-		fmt.Println("Unblocking domain:" + domain)
+		fmt.Println("Unblocking domain: " + domain)
 	}
 	if subnet != "" {
-		fmt.Println("Unblocking subnet:" + subnet)
+		fmt.Println("Unblocking subnet: " + subnet)
 	}
 }
 
@@ -127,6 +127,7 @@ func updateSwitches()  {
 		go updateTorDns("stop")
 		old_sw.tor_dns = sw.tor_dns
 	}
+	configureIptables()
 }
 
 func updateDpi(state string)  {
@@ -153,7 +154,110 @@ func updateTorDns(state string)  {
 	}
 }
 
+func configureIptables()  {
+
+	iptablesDelAll()
+
+	go addDefaultIptables()
+
+	if sw.dpi == true {
+		go addDpi()
+	}
+
+	if sw.tor == true {
+		go addTor()
+	}
+
+	if sw.tor_dns == true {
+		go addTorDns()
+	} else {
+		go addDefaultDns()
+	}
+}
+
+func addDefaultIptables()  {
+	fmt.Println("executing the command 'echo '1' | sudo tee /proc/sys/net/ipv4/conf/eth0/forwarding'")
+	// echo '1' | sudo tee /proc/sys/net/ipv4/conf/eth0/forwarding
+	err := exec.Command("echo", "'1'", "|", "sudo", "tee", "/proc/sys/net/ipv4/conf/eth0/forwarding").Run()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+	fmt.Println("executing the command 'iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE'")
+	// iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+	err = exec.Command("iptables", "-t", "nat", "-A", "POSTROUTING", "-o", "eth0", "-j", "MASQUERADE").Run()
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+
+func iptablesDelAll() {
+	// iptables -F
+	fmt.Println("executing the command 'iptables -F'")
+	err := exec.Command("iptables", "-F").Run()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+	// iptables -t nat -F
+	fmt.Println("executing the command 'iptables -t nat -F'")
+	err = exec.Command("iptables", "-t", "nat", "-F").Run()
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+func addDpi()  {
+	// ON dpi detecter
+	//fmt.Println("executing the command '/bin/bash startDPI.sh'")
+	// iptables -t nat -A PREROUTING -i eth0 -p tcp -m tcp --dport 443 -j REDIRECT --to-ports 30443
+	// iptables -t nat -A PREROUTING -i eth0 -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 30443
+	// /opt/nginxdpi/bin/openresty -c /opt/nginxdpi/cfg/nginx.conf
+	fmt.Println("executing the command '/opt/nginxdpi/bin/openresty -c /opt/nginxdpi/cfg/nginx.conf'")
+	fmt.Println("executing the command 'iptables -t nat -A PREROUTING -i eth0 -p tcp -m tcp --dport 443 -j REDIRECT --to-ports 30443'")
+	fmt.Println("executing the command 'iptables -t nat -A PREROUTING -i eth0 -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 30443'")
+	err := exec.Command("/bin/bash", "startDPI.sh").Run()      ///    переписать    ///
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+
+func addTor() {
+	// ON redirect sites to tor
+	// iptables -t nat -A OUTPUT -p tcp --syn -m set --match-set tornet dst -j REDIRECT --to-ports 9040
+	fmt.Println("executing the command 'iptables -t nat -A OUTPUT -p tcp --syn -m set --match-set tornet dst -j REDIRECT --to-ports 9040'")
+	err := exec.Command("iptables", "-t", "nat", "-A", "OUTPUT", "-p", "tcp", "--syn", "-m", "set", "--match-set", "tornet", "dst", "-j", "REDIRECT", "--to-ports", "9040").Run()
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+
+func addTorDns()  {
+	// ON redirect dns requests to tor
+	// iptables -t nat -I PREROUTING -i eth0 -p udp --dport 53 -j DNAT --to-destination 192.168.1.66:9053
+	fmt.Println("executing the command 'iptables -t nat -I PREROUTING -i eth0 -p udp --dport 53 -j DNAT --to-destination 192.168.1.66:9053'")
+	err := exec.Command("iptables", "-t", "nat", "-I", "PREROUTING", "-i", "eth0", "-p", "udp", "--dport", "53", "-j", "DNAT", "--to-destination", "192.168.1.66:9053").Run()
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+
+func addDefaultDns()  {
+	// iptables -t nat -I PREROUTING -i eth0 -p udp --dport 53 -j DNAT --to-destination 192.168.1.8:53
+	fmt.Println("executing the command 'iptables -t nat -I PREROUTING -i eth0 -p udp --dport 53 -j DNAT --to-destination 192.168.1.8:53'")
+	err := exec.Command("iptables", "-t", "nat", "-I", "PREROUTING", "-i", "eth0", "-p", "udp", "--dport", "53", "-j", "DNAT", "--to-destination", "192.168.1.8:53").Run()
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+
 func filesToIptables(){
+
+	fmt.Println("executing the command '/bin/bash scripts/getBlocked.sh'")
+	err := exec.Command("/bin/bash", "scripts/getBlocked.sh").Run()
+    if err != nil {
+        log.Fatal(err)
+    }
+
     file, err := os.Open("/tmp/lst/ipsum.lst")
     if err != nil {
         log.Fatal(err)
@@ -178,14 +282,14 @@ func filesToIptables(){
         }
     }
 
-    fmt.Println("iptables -t nat -A OUTPUT -p tcp --syn -m set --match-set tornet dst -j REDIRECT --to-ports 9040")
+    // fmt.Println("iptables -t nat -A OUTPUT -p tcp --syn -m set --match-set tornet dst -j REDIRECT --to-ports 9040")
 
-    args := []string{"-t", "nat", "-A", "OUTPUT", "-p", "tcp", "--syn", "-m", "set", "--match-set", "tornet", "dst", "-j", "REDIRECT", "--to-ports", "9040"}
-    cmd = exec.Command("iptables", args...)
-    err = cmd.Run()
-    if err != nil {
-        log.Fatal(err)
-    }
+    // args := []string{"-t", "nat", "-A", "OUTPUT", "-p", "tcp", "--syn", "-m", "set", "--match-set", "tornet", "dst", "-j", "REDIRECT", "--to-ports", "9040"}
+    // cmd = exec.Command("iptables", args...)
+    // err = cmd.Run()
+    // if err != nil {
+    //     log.Fatal(err)
+    // }
 
 }
 
@@ -193,9 +297,5 @@ func filesToIptables(){
 
 //iptables -t nat -I PREROUTING 1 -i eth0 -p udp --dport 53 -j DNAT --to-destination 192.168.1.8:53
 //iptables -t nat -I PREROUTING 1 -i eth0 -p udp --dport 53 -j DNAT --to-destination 192.168.1.8:53
+// echo 1 > /proc/sys/net/ipv4/ip_forward 
 //iptables -t nat -I PREROUTING 1 -i eth0 -p udp --dport 53 -j DNAT --to-destination 192.168.1.66:9053
-//iptables -t nat -I PREROUTING 1 -i eth0 -p udp --dport 53 -j DNAT --to-destination 127.0.0.1:9053
-
-// sudo iptables -t nat -A OUTPUT -p udp --dport 53 -j REDIRECT --to-ports 9053
-
-// sudo iptables -t nat -A PREROUTING -i eth0 -p udp -m udp --dport 53 -j REDIRECT --to-ports 9053
