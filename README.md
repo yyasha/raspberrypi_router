@@ -1,5 +1,3 @@
-# raspberrypi_router
-
 Установка DPI
 ------------
 don't forget to replace the username with your username:
