@@ -1,4 +1,4 @@
-Установка DPI
+DPI installing
 ------------
 don't forget to replace the username with your username:
 ```
