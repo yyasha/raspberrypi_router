@@ -51,6 +51,6 @@ DNSPort 192.168.1.1:9053
 
 Remaining actions
 ------------
-> Open scripts/startDefaultDns.sh and replace 192.168.1.1:53 to your static dns
-> Open scripts/startDpi.sh and replace user to your username
-> Open scripts/startTorDns.sh and replace 192.168.1.1:9053 to your Tor DNS ip and port
+> Open scripts/startDefaultDns.sh and replace 192.168.1.1:53 to your static dns  
+> Open scripts/startDpi.sh and replace user to your username  
+> Open scripts/startTorDns.sh and replace 192.168.1.1:9053 to your Tor DNS ip and port  
