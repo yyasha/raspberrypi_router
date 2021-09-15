@@ -28,3 +28,29 @@ replace /home/user with your username
 edit /DPI/nginx.conf:
 Replace 127.0.0.1 and 9050 with the host and port of your SOCKS5 server!
 Also replace 192.168.1.1 with the IP address of the DNS server that you want to resolve the hosts to.
+
+TOR installing
+------------
+```
+apt install tor
+nano nano /etc/tor/torrc
+```
+Paste in file and replace 192.168.1.1 to your ip:
+```
+SocksPort 192.168.1.66:9050
+SocksPort 127.0.0.1:9050
+SocksPolicy accept 192.168.1.0/24
+RunAsDaemon 1
+DataDirectory /var/lib/tor
+
+VirtualAddrNetwork 10.0.0.0/10
+AutomapHostsOnResolve 1
+TransPort 9040
+DNSPort 192.168.1.1:9053
+```
+
+Remaining actions
+------------
+Open scripts/startDefaultDns.sh and replace 192.168.1.1:53 to your static dns
+Open scripts/startDpi.sh and replace user to your username
+Open scripts/startTorDns.sh and replace 192.168.1.1:9053 to your Tor DNS ip and port
