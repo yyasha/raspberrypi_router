@@ -23,7 +23,7 @@ cp /home/username/build/lua-resty-socks5/socks5.lua /home/username/nginxdpi/lual
 cp /home/username/build/lua-struct/src/struct.lua /home/username/nginxdpi/lualib/
 ```
 edit /scripts/startDpi.sh:  
-> replace /home/user with your username  
+> replace user to your username  
 
 edit /DPI/nginx.conf:  
 > Replace 127.0.0.1 and 9050 with the host and port of your SOCKS5 server!  
@@ -51,6 +51,5 @@ DNSPort 192.168.1.1:9053
 
 Remaining actions
 ------------
-Open scripts/startDefaultDns.sh and replace 192.168.1.1:53 to your static dns  
-Open scripts/startDpi.sh and replace user to your username  
+Open scripts/startDefaultDns.sh and replace 192.168.1.1:53 to your static dns   
 Open scripts/startTorDns.sh and replace 192.168.1.1:9053 to your Tor DNS ip and port  
