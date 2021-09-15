@@ -24,6 +24,7 @@ cp /home/username/build/lua-struct/src/struct.lua /home/username/nginxdpi/lualib
 ```
 edit /scripts/startDpi.sh:  
 > replace user to your username  
+> replace eth0 to your interface
 
 edit /DPI/nginx.conf:  
 > Replace 127.0.0.1 and 9050 with the host and port of your SOCKS5 server!  
