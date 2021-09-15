@@ -49,7 +49,23 @@ TransPort 9040
 DNSPort 192.168.1.1:9053
 ```
 
+Go installing
+-----------
+Official guide: https://golang.org/doc/install
+
 Remaining actions
 ------------
 Open scripts/startDefaultDns.sh and replace 192.168.1.1:53 to your static dns   
 Open scripts/startTorDns.sh and replace 192.168.1.1:9053 to your Tor DNS ip and port  
+
+Starting the router
+------------
+```
+go run server.go
+```
+or
+```
+go build server.go
+./server
+```
+
