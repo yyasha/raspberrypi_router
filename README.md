@@ -22,12 +22,12 @@ cp -r /home/username/build/lua-resty-openssl-aux-module/lualib/* /home/username/
 cp /home/username/build/lua-resty-socks5/socks5.lua /home/username/nginxdpi/lualib/resty/
 cp /home/username/build/lua-struct/src/struct.lua /home/username/nginxdpi/lualib/
 ```
-> edit /scripts/startDpi.sh:  
-> replace /home/user with your username  
+edit /scripts/startDpi.sh:  
+replace /home/user with your username  
 
-> edit /DPI/nginx.conf:  
-> Replace 127.0.0.1 and 9050 with the host and port of your SOCKS5 server!  
-> Also replace 192.168.1.1 with the IP address of the DNS server that you want to resolve the hosts to.  
+edit /DPI/nginx.conf:  
+Replace 127.0.0.1 and 9050 with the host and port of your SOCKS5 server!  
+Also replace 192.168.1.1 with the IP address of the DNS server that you want to resolve the hosts to.  
 
 TOR installing
 ------------
@@ -51,6 +51,6 @@ DNSPort 192.168.1.1:9053
 
 Remaining actions
 ------------
-> Open scripts/startDefaultDns.sh and replace 192.168.1.1:53 to your static dns  
-> Open scripts/startDpi.sh and replace user to your username  
-> Open scripts/startTorDns.sh and replace 192.168.1.1:9053 to your Tor DNS ip and port  
+Open scripts/startDefaultDns.sh and replace 192.168.1.1:53 to your static dns  
+Open scripts/startDpi.sh and replace user to your username  
+Open scripts/startTorDns.sh and replace 192.168.1.1:9053 to your Tor DNS ip and port  
