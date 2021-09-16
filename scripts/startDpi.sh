@@ -1,5 +1,5 @@
 #!/bin/sh
-/home/user/nginxdpi/bin/openresty -c /home/user/nginxdpi/cfg/nginx.conf
+/opt/nginxdpi/bin/openresty -c /opt/nginxdpi/cfg/nginx.conf
 
 echo '1' | sudo tee /proc/sys/net/ipv4/conf/eth0/forwarding
 #sh -c 'echo 1 > /proc/sys/net/ipv4/ip_forward'
