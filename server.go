@@ -21,15 +21,17 @@ var old_sw = Switches{false, false, false}
 var swi [3]bool
 
 func main() {
-	updateSwitches()
 
 	go filesToIptables()
+
+	updateSwitches()
 
 	fmt.Println("Server started!")
 
 	http.HandleFunc("/", homepage)
 	http.HandleFunc("/unblock/", unblock)
 	http.HandleFunc("/switchstate/", switchState)
+	http.HandleFunc("/poweroff/", poweroff)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir("images"))))
 	http.ListenAndServe(":8080", nil)
@@ -74,6 +76,14 @@ func unblock(w http.ResponseWriter, r *http.Request) {
             log.Println(err)
         }
 	}
+}
+
+func poweroff(w http.ResponseWriter, r *http.Request)  {
+	fmt.Println("executing the command 'poweroff'")
+	err := exec.Command("poweroff").Run()
+    if err != nil {
+        log.Fatal(err)
+    }
 }
 
 func switchState(w http.ResponseWriter, r *http.Request)  {
@@ -265,8 +275,14 @@ func addDefaultDns()  {
 
 func filesToIptables(){
 
+	cmd := exec.Command("ipset", "-N", "tornet", "nethash")
+        err := cmd.Run()
+        if err != nil {
+            log.Println(err)
+        }
+
 	fmt.Println("executing the command '/bin/bash scripts/getBlocked.sh'")
-	err := exec.Command("/bin/bash", "scripts/getBlocked.sh").Run()
+	err = exec.Command("/bin/bash", "scripts/getBlocked.sh").Run()
     if err != nil {
         log.Fatal(err)
     }
@@ -276,12 +292,6 @@ func filesToIptables(){
         log.Fatal(err)
     }
     defer file.Close()
-
-    cmd := exec.Command("ipset", "-N", "tornet", "nethash")
-        err = cmd.Run()
-        if err != nil {
-            log.Println(err)
-        }
 
     scanner := bufio.NewScanner(file)
     for scanner.Scan() {
