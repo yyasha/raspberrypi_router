@@ -220,8 +220,8 @@ func iptablesDelAll() {
     }
 }
 func addDpi()  {
-	fmt.Println("executing the command '/bin/bash scripts/startDPI.sh'")
-	err := exec.Command("/bin/bash", "scripts/startDPI.sh").Run()      ///    переписать    ///
+	fmt.Println("executing the command '/bin/bash scripts/startDpi.sh'")
+	err := exec.Command("/bin/bash", "scripts/startDpi.sh").Run()      ///    переписать    ///
     if err != nil {
         log.Println(err)
     }
