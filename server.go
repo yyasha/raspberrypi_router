@@ -197,19 +197,11 @@ func configureIptables()  {
 }
 
 func addDefaultIptables()  {
-	fmt.Println("executing the command 'echo '1' | sudo tee /proc/sys/net/ipv4/conf/eth0/forwarding'")
-	// echo '1' | sudo tee /proc/sys/net/ipv4/conf/eth0/forwarding
+	fmt.Println("executing the command '/bin/bash scripts/startDefaultIptables.sh'")
 	err := exec.Command("/bin/bash", "scripts/startDefaultIptables.sh").Run()
     if err != nil {
         log.Fatal(err)
     }
-
-	fmt.Println("executing the command 'iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE'")
-	// iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-	// err = exec.Command("iptables", "-t", "nat", "-A", "POSTROUTING", "-o", "eth0", "-j", "MASQUERADE").Run()
-    // if err != nil {
-    //     log.Fatal(err)
-    // }
 }
 
 func iptablesDelAll() {
@@ -228,24 +220,16 @@ func iptablesDelAll() {
     }
 }
 func addDpi()  {
-	// ON dpi detecter
-	//fmt.Println("executing the command '/bin/bash startDPI.sh'")
-	// iptables -t nat -A PREROUTING -i eth0 -p tcp -m tcp --dport 443 -j REDIRECT --to-ports 30443
-	// iptables -t nat -A PREROUTING -i eth0 -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 30443
-	// /opt/nginxdpi/bin/openresty -c /opt/nginxdpi/cfg/nginx.conf
-	fmt.Println("executing the command '/opt/nginxdpi/bin/openresty -c /opt/nginxdpi/cfg/nginx.conf'")
-	fmt.Println("executing the command 'iptables -t nat -A PREROUTING -i eth0 -p tcp -m tcp --dport 443 -j REDIRECT --to-ports 30443'")
-	fmt.Println("executing the command 'iptables -t nat -A PREROUTING -i eth0 -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 30443'")
+	fmt.Println("executing the command '/bin/bash scripts/startDPI.sh'")
 	err := exec.Command("/bin/bash", "scripts/startDPI.sh").Run()      ///    переписать    ///
     if err != nil {
-        log.Fatal(err)
+        log.Println(err)
     }
 }
 
 func addTor() {
 	// ON redirect sites to tor
-	// iptables -t nat -A OUTPUT -p tcp --syn -m set --match-set tornet dst -j REDIRECT --to-ports 9040
-	fmt.Println("executing the command 'iptables -t nat -A OUTPUT -p tcp --syn -m set --match-set tornet dst -j REDIRECT --to-ports 9040'")
+	fmt.Println("executing the command '/bin/bash scripts/startTor.sh'")
 	err := exec.Command("/bin/bash", "scripts/startTor.sh").Run()
     if err != nil {
         log.Fatal(err)
@@ -254,8 +238,7 @@ func addTor() {
 
 func addTorDns()  {
 	// ON redirect dns requests to tor
-	// iptables -t nat -I PREROUTING -i eth0 -p udp --dport 53 -j DNAT --to-destination 192.168.1.66:9053
-	fmt.Println("executing the command 'iptables -t nat -I PREROUTING -i eth0 -p udp --dport 53 -j DNAT --to-destination 192.168.1.66:9053'")
+	fmt.Println("executing the command '/bin/bash scripts/startTorDns.sh'")
 	err := exec.Command("/bin/bash", "scripts/startTorDns.sh").Run()
     if err != nil {
         log.Fatal(err)
@@ -263,10 +246,7 @@ func addTorDns()  {
 }
 
 func addDefaultDns()  {
-	// echo 1 > /proc/sys/net/ipv4/ip_forward 
-	fmt.Println("executing the command 'echo 1 > /proc/sys/net/ipv4/ip_forward'")
-	// iptables -t nat -I PREROUTING -i eth0 -p udp --dport 53 -j DNAT --to-destination 192.168.1.8:53
-	fmt.Println("executing the command 'iptables -t nat -I PREROUTING -i eth0 -p udp --dport 53 -j DNAT --to-destination 192.168.1.8:53'")
+	fmt.Println("executing the command '/bin/bash scripts/startDefaultDns.sh'")
 	err := exec.Command("/bin/bash", "scripts/startDefaultDns.sh").Run()
     if err != nil {
         log.Fatal(err)
@@ -274,7 +254,7 @@ func addDefaultDns()  {
 }
 
 func filesToIptables(){
-
+	fmt.Println("executing the command 'ipset -N tornet nethash'")
 	cmd := exec.Command("ipset", "-N", "tornet", "nethash")
         err := cmd.Run()
         if err != nil {
