@@ -14,15 +14,16 @@ type Switches struct {
 	dpi bool
 	tor bool
 	tor_dns bool
+	all_list_tor bool
 }
 
-var sw = Switches{true, true, false}
-var old_sw = Switches{false, false, false}
+var sw = Switches{true, true, false, false}
+var old_sw = Switches{false, false, false, false}
 var swi [3]bool
 
 func main() {
 
-	go filesToIptables()
+	startSettings()
 
 	updateSwitches()
 
@@ -35,6 +36,22 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir("images"))))
 	http.ListenAndServe(":8080", nil)
+}
+
+func startSettings() {
+	fmt.Println("executing the command 'ipset -N tornet nethash'")
+	cmd := exec.Command("ipset", "-N", "tornet", "nethash")
+        err := cmd.Run()
+        if err != nil {
+            log.Println(err)
+        }
+
+	fmt.Println("executing the command 'ipset -N usertornet nethash'")
+	cmd = exec.Command("ipset", "-N", "usertornet", "nethash")
+		err = cmd.Run()
+		if err != nil {
+			log.Println(err)
+		}
 }
 
 func homepage(w http.ResponseWriter, r *http.Request) {
@@ -58,9 +75,11 @@ func unblock(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()                     // Parses the request body
     domain := r.Form.Get("domain")
     subnet := r.Form.Get("subnet")
+	allblocked := r.Form.Get("allblocked")
 
 	if domain != "" {
 		fmt.Println("Unblocking domain: " + domain)   // iptables -t nat -A OUTPUT -p tcp --syn -d rutracker.org -j REDIRECT --to-ports 9040
+		saveDomain(domain)
 		cmd := exec.Command("iptables", "-t", "nat", "-A", "OUTPUT", "-p", "tcp", "--syn", "-d", domain, "-j", "REDIRECT", "--to-ports", "9040")
         err := cmd.Run()
         if err != nil {
@@ -70,11 +89,18 @@ func unblock(w http.ResponseWriter, r *http.Request) {
 
 	if subnet != "" {
 		fmt.Println("Unblocking subnet: " + subnet)
-		cmd := exec.Command("ipset", "-A", "tornet", subnet)
+		cmd := exec.Command("ipset", "-A", "usertornet", subnet)
         err := cmd.Run()
         if err != nil {
             log.Println(err)
         }
+	}
+
+	if allblocked == "1" {
+		go addAllBlocked()
+	} else if allblocked == "0"{
+		sw.all_list_tor = false
+		updateSwitches()
 	}
 }
 
@@ -125,30 +151,51 @@ func switchState(w http.ResponseWriter, r *http.Request)  {
 
 func updateSwitches()  {
 
+	var changeIndex uint8 = 0
+
 	if sw.dpi == true && old_sw.dpi == false {
 		go updateDpi("start")
 		old_sw.dpi = sw.dpi
+		changeIndex += 1
 	} else if sw.dpi == false && old_sw.dpi == true {
 		go updateDpi("stop")
 		old_sw.dpi = sw.dpi
+		changeIndex += 1
 	}
 
 	if sw.tor == true && old_sw.tor == false {
 		go updateTor("start")
 		old_sw.tor = sw.tor
+		changeIndex += 1
 	} else if sw.tor == false && old_sw.tor == true {
 		go updateTor("stop")
 		old_sw.tor = sw.tor
+		changeIndex += 1
 	}
 
 	if sw.tor_dns == true && old_sw.tor_dns == false {
 		go updateTorDns("start")
 		old_sw.tor_dns = sw.tor_dns
+		changeIndex += 1
 	} else if sw.tor_dns == false && old_sw.tor_dns == true {
 		go updateTorDns("stop")
 		old_sw.tor_dns = sw.tor_dns
+		changeIndex += 1
 	}
-	configureIptables()
+
+	if sw.all_list_tor == true && old_sw.all_list_tor == false {
+		go updateListTor("start")
+		old_sw.all_list_tor = sw.all_list_tor
+		changeIndex += 1
+	} else if sw.all_list_tor == false && old_sw.all_list_tor == true {
+		go updateListTor("stop")
+		old_sw.all_list_tor = sw.all_list_tor
+		changeIndex += 1
+	}
+
+	if changeIndex != 0 {
+		configureIptables()
+	}
 }
 
 func updateDpi(state string)  {
@@ -175,6 +222,14 @@ func updateTorDns(state string)  {
 	}
 }
 
+func updateListTor(state string)  {
+	if state == "start" {
+		fmt.Println("Starting TOR List...")
+	} else {
+		fmt.Println("Stopping TOR List...")
+	}
+}
+
 func configureIptables()  {
 
 	iptablesDelAll()
@@ -186,7 +241,7 @@ func configureIptables()  {
 	}
 
 	if sw.tor == true {
-		go addTor()
+		go addUserTor()
 	}
 
 	if sw.tor_dns == true {
@@ -194,11 +249,23 @@ func configureIptables()  {
 	} else {
 		go addDefaultDns()
 	}
+
+	if sw.all_list_tor == true {
+		go addTorListToIptables()
+	}
 }
 
 func addDefaultIptables()  {
 	fmt.Println("executing the command '/bin/bash scripts/startDefaultIptables.sh'")
 	err := exec.Command("/bin/bash", "scripts/startDefaultIptables.sh").Run()
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+
+func addUserTor() {
+	fmt.Println("executing the command '/bin/bash scripts/startUserTor.sh'")
+	err := exec.Command("/bin/bash", "scripts/startUserTor.sh").Run()
     if err != nil {
         log.Fatal(err)
     }
@@ -219,6 +286,7 @@ func iptablesDelAll() {
         log.Fatal(err)
     }
 }
+
 func addDpi()  {
 	fmt.Println("executing the command '/bin/bash scripts/startDpi.sh'")
 	err := exec.Command("/bin/bash", "scripts/startDpi.sh").Run()      ///    переписать    ///
@@ -253,16 +321,13 @@ func addDefaultDns()  {
     }
 }
 
-func filesToIptables(){
-	fmt.Println("executing the command 'ipset -N tornet nethash'")
-	cmd := exec.Command("ipset", "-N", "tornet", "nethash")
-        err := cmd.Run()
-        if err != nil {
-            log.Println(err)
-        }
+func addAllBlocked(){
+	sw.all_list_tor = true
+
+	updateSwitches()
 
 	fmt.Println("executing the command '/bin/bash scripts/getBlocked.sh'")
-	err = exec.Command("/bin/bash", "scripts/getBlocked.sh").Run()
+	err := exec.Command("/bin/bash", "scripts/getBlocked.sh").Run()
     if err != nil {
         log.Fatal(err)
     }
@@ -284,21 +349,45 @@ func filesToIptables(){
             log.Println(err)
         }
     }
-
-    // fmt.Println("iptables -t nat -A OUTPUT -p tcp --syn -m set --match-set tornet dst -j REDIRECT --to-ports 9040")
-
-    // args := []string{"-t", "nat", "-A", "OUTPUT", "-p", "tcp", "--syn", "-m", "set", "--match-set", "tornet", "dst", "-j", "REDIRECT", "--to-ports", "9040"}
-    // cmd = exec.Command("iptables", args...)
-    // err = cmd.Run()
-    // if err != nil {
-    //     log.Fatal(err)
-    // }
-
 }
 
+func addTorListToIptables() {
+	fmt.Println("executing the command '/bin/bash scripts/startUserTor.sh'")
+	err := exec.Command("/bin/bash", "scripts/startUserTor.sh").Run()
+    if err != nil {
+        log.Fatal(err)
+    }
+}
 
+func saveDomain(domain string){
 
-//iptables -t nat -I PREROUTING 1 -i eth0 -p udp --dport 53 -j DNAT --to-destination 192.168.1.8:53
-//iptables -t nat -I PREROUTING 1 -i eth0 -p udp --dport 53 -j DNAT --to-destination 192.168.1.8:53
-// echo 1 > /proc/sys/net/ipv4/ip_forward 
-//iptables -t nat -I PREROUTING 1 -i eth0 -p udp --dport 53 -j DNAT --to-destination 192.168.1.66:9053
+	domain = domain + "\n"
+
+	file, err := os.OpenFile("domains.list", os.O_APPEND|os.O_WRONLY, 0600)
+    if err != nil {
+        file, err = os.Create("domains.list")
+		if err != nil{
+			log.Println("Unable to create file domains.list:", err) 
+		}
+		defer file.Close()
+    }
+    defer file.Close()
+
+    file.WriteString(domain)
+}
+
+func getDomainsArray() []string{
+	var finalArray []string
+	file, err := os.Open("domains.list")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer file.Close()
+	
+	scanner := bufio.NewScanner(file)
+    for scanner.Scan() {
+        fmt.Println("domain: " + scanner.Text())
+		finalArray = append(finalArray, scanner.Text())
+    }
+	return finalArray
+}
