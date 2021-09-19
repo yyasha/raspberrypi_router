@@ -241,7 +241,7 @@ func configureIptables()  {
 	}
 
 	if sw.tor == true {
-		go addTor()
+		go addUserTor()
 	}
 
 	if sw.tor_dns == true {
@@ -251,7 +251,7 @@ func configureIptables()  {
 	}
 
 	if sw.all_list_tor == true && sw.tor == true {
-		go addUserTor()
+		go addTor()
 	}
 }
 
