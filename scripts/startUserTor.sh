@@ -1,0 +1,1 @@
+iptables -t nat -A OUTPUT -p tcp --syn -m set --match-set usertornet dst -j REDIRECT --to-ports 9040
