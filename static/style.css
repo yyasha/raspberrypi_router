@@ -86,6 +86,7 @@ ul li label {
     color: black;
     background-color: white;
     font-size: 22px;
+    margin-top: 10px;
 }
 
 .cuteButton:hover {

@@ -241,7 +241,7 @@ func configureIptables()  {
 	}
 
 	if sw.tor == true {
-		go addUserTor()
+		go addTor()
 	}
 
 	if sw.tor_dns == true {
@@ -250,8 +250,8 @@ func configureIptables()  {
 		go addDefaultDns()
 	}
 
-	if sw.all_list_tor == true {
-		go addTorListToIptables()
+	if sw.all_list_tor == true && sw.tor == true {
+		go addUserTor()
 	}
 }
 
@@ -348,14 +348,6 @@ func addAllBlocked(){
         if err != nil {
             log.Println(err)
         }
-    }
-}
-
-func addTorListToIptables() {
-	fmt.Println("executing the command '/bin/bash scripts/startUserTor.sh'")
-	err := exec.Command("/bin/bash", "scripts/startUserTor.sh").Run()
-    if err != nil {
-        log.Fatal(err)
     }
 }
 

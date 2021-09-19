@@ -2,6 +2,8 @@ let switchbtnDpi = document.getElementById('switchbtn-dpi');
 let switchbtnTor = document.getElementById('switchbtn-tor');
 let switchbtnTorDNS = document.getElementById('switchbtn-tordns');
 let buttonSub = document.getElementById('buttonSub')
+let buttonAddAllDomains = document.getElementById('buttonAddAllDomains')
+let buttonDelAllDomains = document.getElementById('buttonDelAllDomains')
 
 let switchesNowState = [false, false, false];
 
@@ -71,5 +73,27 @@ buttonSub.onclick = function() {
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 
     xhr.send("domain=" + input_domain + "&subnet=" + input_subnet);
+
+    document.getElementById("domain").value = "";
+    document.getElementById("subnet").value = "";
 };
 
+buttonAddAllDomains.onclick = function() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", '/unblock/', true);
+
+    //Передаёт правильный заголовок в запросе
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+    xhr.send("allblocked=1");
+};
+
+buttonDelAllDomains.onclick = function() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", '/unblock/', true);
+
+    //Передаёт правильный заголовок в запросе
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+    xhr.send("allblocked=0");
+};
