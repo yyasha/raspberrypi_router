@@ -6,22 +6,27 @@ let buttonAddAllDomains = document.getElementById('switchbtn-AddAllDomains')
 
 let switchesNowState = [false, false, false, false];
 
-if (switchStatsArray[0] != switchesNowState[0]){
+console.log(serverJson)
+
+const json = JSON.parse(serverJson);
+console.log(json.state, json.domains);
+
+if (json.state.dpi != switchesNowState[0]){
     switchesNowState[0] = !switchesNowState[0];
     switchbtnDpi.classList.toggle('switch-on');
 }
 
-if (switchStatsArray[1] != switchesNowState[1]){
+if (json.state.tor != switchesNowState[1]){
     switchesNowState[1] = !switchesNowState[1];
     switchbtnTor.classList.toggle('switch-on');
 }
 
-if (switchStatsArray[2] != switchesNowState[2]){
+if (json.state.tor_dns != switchesNowState[2]){
     switchesNowState[2] = !switchesNowState[2];
     switchbtnTorDNS.classList.toggle('switch-on');
 }
 
-if (switchStatsArray[3] != switchesNowState[3]){
+if (json.state.all_list != switchesNowState[3]){
     switchesNowState[3] = !switchesNowState[3];
     buttonAddAllDomains.classList.toggle('switch-on');
 }

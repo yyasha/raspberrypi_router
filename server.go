@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -17,14 +18,20 @@ type Switches struct {
 	all_list_tor bool
 }
 
+type SendSwitches struct {
+	Dpi bool   `json:"dpi"`
+	Tor bool   `json:"tor"`
+	Tor_dns bool   `json:"tor_dns"`
+	All_list_tor bool  `json:"all_list"`
+}
+
 type SendData struct {
-	switch_state []bool
-	domains_array []string
+	SendSwitches `json:"state"`
+	Domains_array []string `json:"domains"`
 }
 
 var sw = Switches{true, true, false, false}
 var old_sw = Switches{false, false, false, false}
-var swi [4]bool
 var updatedList bool = false
 
 func main() {
@@ -65,13 +72,19 @@ func homepage(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		fmt.Println("GET /")
 		tmpl, _ := template.ParseFiles("templates/index.html")
-		
-		swi[0] = sw.dpi
-		swi[1] = sw.tor
-		swi[2] =sw.tor_dns
-		swi[3] =sw.all_list_tor
 
-		tmpl.Execute(w, swi)
+		var sendsw = SendSwitches{sw.dpi, sw.tor, sw.tor_dns, sw.all_list_tor}
+
+		data := SendData{sendsw, getDomainsArray()}
+
+		finalJson, err := json.Marshal(data)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Println(string(finalJson))
+
+		tmpl.Execute(w, string(finalJson))
 
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
