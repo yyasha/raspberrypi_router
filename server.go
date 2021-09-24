@@ -17,9 +17,15 @@ type Switches struct {
 	all_list_tor bool
 }
 
+type SendData struct {
+	switch_state []bool
+	domains_array []string
+}
+
 var sw = Switches{true, true, false, false}
 var old_sw = Switches{false, false, false, false}
-var swi [3]bool
+var swi [4]bool
+var updatedList bool = false
 
 func main() {
 
@@ -63,6 +69,7 @@ func homepage(w http.ResponseWriter, r *http.Request) {
 		swi[0] = sw.dpi
 		swi[1] = sw.tor
 		swi[2] =sw.tor_dns
+		swi[3] =sw.all_list_tor
 
 		tmpl.Execute(w, swi)
 
@@ -75,7 +82,6 @@ func unblock(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()                     // Parses the request body
     domain := r.Form.Get("domain")
     subnet := r.Form.Get("subnet")
-	allblocked := r.Form.Get("allblocked")
 
 	if domain != "" {
 		fmt.Println("Unblocking domain: " + domain)   // iptables -t nat -A OUTPUT -p tcp --syn -d rutracker.org -j REDIRECT --to-ports 9040
@@ -95,13 +101,6 @@ func unblock(w http.ResponseWriter, r *http.Request) {
             log.Println(err)
         }
 	}
-
-	if allblocked == "1" {
-		go addAllBlocked()
-	} else if allblocked == "0"{
-		sw.all_list_tor = false
-		updateSwitches()
-	}
 }
 
 func poweroff(w http.ResponseWriter, r *http.Request)  {
@@ -117,6 +116,7 @@ func switchState(w http.ResponseWriter, r *http.Request)  {
 	dpiSwitch := r.Form.Get("dpi")
 	torSwitch := r.Form.Get("tor")
 	tordnsSwitch := r.Form.Get("tordns")
+	allblockedSwitch := r.Form.Get("allblocked")
 
 	if dpiSwitch != "" {
 		fmt.Println("DPI switch on = " + dpiSwitch)
@@ -142,6 +142,15 @@ func switchState(w http.ResponseWriter, r *http.Request)  {
 			sw.tor_dns = true
 		} else if tordnsSwitch == "false"{
 			sw.tor_dns = false
+		}
+	}
+
+	if allblockedSwitch != "" {
+		fmt.Println("All blocked switch on = " + allblockedSwitch)
+		if allblockedSwitch == "true"{
+			sw.all_list_tor = true
+		} else if allblockedSwitch == "false"{
+			sw.all_list_tor = false
 		}
 	}
 
@@ -225,6 +234,10 @@ func updateTorDns(state string)  {
 func updateListTor(state string)  {
 	if state == "start" {
 		fmt.Println("Starting TOR List...")
+		if updatedList == false {
+			fmt.Println("Updating the list of blocked addresses")
+			go UpdateBlockedList()
+		}
 	} else {
 		fmt.Println("Stopping TOR List...")
 	}
@@ -250,7 +263,7 @@ func configureIptables()  {
 		go addDefaultDns()
 	}
 
-	if sw.all_list_tor == true && sw.tor == true {
+	if sw.all_list_tor == true {
 		go addTor()
 	}
 }
@@ -321,11 +334,8 @@ func addDefaultDns()  {
     }
 }
 
-func addAllBlocked(){
-	sw.all_list_tor = true
-
-	updateSwitches()
-
+func UpdateBlockedList(){
+	updatedList = true
 	fmt.Println("executing the command '/bin/bash scripts/getBlocked.sh'")
 	err := exec.Command("/bin/bash", "scripts/getBlocked.sh").Run()
     if err != nil {

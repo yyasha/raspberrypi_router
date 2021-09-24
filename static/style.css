@@ -39,7 +39,7 @@ ul li label {
 
 .btns {
   display: flex;
-  margin-top: 10%;
+  margin-top: 5%;
   justify-content: center;
   min-height: 1vh;
 }

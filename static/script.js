@@ -2,10 +2,9 @@ let switchbtnDpi = document.getElementById('switchbtn-dpi');
 let switchbtnTor = document.getElementById('switchbtn-tor');
 let switchbtnTorDNS = document.getElementById('switchbtn-tordns');
 let buttonSub = document.getElementById('buttonSub')
-let buttonAddAllDomains = document.getElementById('buttonAddAllDomains')
-let buttonDelAllDomains = document.getElementById('buttonDelAllDomains')
+let buttonAddAllDomains = document.getElementById('switchbtn-AddAllDomains')
 
-let switchesNowState = [false, false, false];
+let switchesNowState = [false, false, false, false];
 
 if (switchStatsArray[0] != switchesNowState[0]){
     switchesNowState[0] = !switchesNowState[0];
@@ -20,6 +19,11 @@ if (switchStatsArray[1] != switchesNowState[1]){
 if (switchStatsArray[2] != switchesNowState[2]){
     switchesNowState[2] = !switchesNowState[2];
     switchbtnTorDNS.classList.toggle('switch-on');
+}
+
+if (switchStatsArray[3] != switchesNowState[3]){
+    switchesNowState[3] = !switchesNowState[3];
+    buttonAddAllDomains.classList.toggle('switch-on');
 }
 
 switchbtnDpi.onclick = function() {
@@ -61,6 +65,19 @@ switchbtnTorDNS.onclick = function() {
     }
 };
 
+buttonAddAllDomains.onclick = function() {
+    buttonAddAllDomains.classList.toggle('switch-on');
+    switchesNowState[3] = !switchesNowState[3];
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", '/switchstate/', true);
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    if(switchesNowState[3] == true){
+        xhr.send("allblocked=true");
+    } else {
+        xhr.send("allblocked=false");
+    }
+};
+
 
 buttonSub.onclick = function() {
     var input_domain = document.getElementById("domain").value;
@@ -76,24 +93,4 @@ buttonSub.onclick = function() {
 
     document.getElementById("domain").value = "";
     document.getElementById("subnet").value = "";
-};
-
-buttonAddAllDomains.onclick = function() {
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", '/unblock/', true);
-
-    //Передаёт правильный заголовок в запросе
-    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-
-    xhr.send("allblocked=1");
-};
-
-buttonDelAllDomains.onclick = function() {
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", '/unblock/', true);
-
-    //Передаёт правильный заголовок в запросе
-    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-
-    xhr.send("allblocked=0");
 };
