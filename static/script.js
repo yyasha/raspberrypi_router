@@ -6,10 +6,22 @@ let buttonAddAllDomains = document.getElementById('switchbtn-AddAllDomains')
 
 let switchesNowState = [false, false, false, false];
 
-console.log(serverJson)
-
 const json = JSON.parse(serverJson);
-console.log(json.state, json.domains);
+
+if (json.domains != null){                 // generating html
+    let inner = ''
+    console.log(json.domains);
+    for (var i = 0; i < json.domains.length; i++) {
+        inner += '<div class="list_elem">' + json.domains[i] + ' ' + '<button id="removebutton-'+ i +'" class="rmButton">Remove</button>' + '</div>' + '<br/>' + '\n';
+        console.log(inner)
+    }
+    document.getElementById('List').innerHTML = inner;
+}
+
+if (json.subnets != null){
+    console.log(json.subnets)
+}
+
 
 if (json.state.dpi != switchesNowState[0]){
     switchesNowState[0] = !switchesNowState[0];

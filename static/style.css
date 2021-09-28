@@ -37,9 +37,32 @@ ul li label {
   position: relative;
 }
 
+.lists {
+  display: flex;
+  min-height: 1vh;
+  justify-content: center;
+}
+
+.list_elem {
+  margin-top: 5px;
+}
+
+.rmButton {
+  margin-left: 20px;
+    transition-duration: 0.4s;
+    color: black;
+    background-color: white;
+    font-size: 15px;
+}
+
+.rmButton:hover {
+    background-color: #b0314f; /* Green */
+    color: white;
+}
+
 .btns {
   display: flex;
-  margin-top: 5%;
+  margin-top: 1%;
   justify-content: center;
   min-height: 1vh;
 }
@@ -81,7 +104,6 @@ ul li label {
 }
 
 .cuteButton {
-    -webkit-transition-duration: 0.4s; /* Safari */
     transition-duration: 0.4s;
     color: black;
     background-color: white;

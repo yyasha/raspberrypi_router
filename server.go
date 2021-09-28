@@ -28,6 +28,7 @@ type SendSwitches struct {
 type SendData struct {
 	SendSwitches `json:"state"`
 	Domains_array []string `json:"domains"`
+	Subnets_array []string `json:"subnets"`
 }
 
 var sw = Switches{true, true, false, false}
@@ -40,8 +41,6 @@ func main() {
 
 	updateSwitches()
 
-	fmt.Println("Server started!")
-
 	http.HandleFunc("/", homepage)
 	http.HandleFunc("/unblock/", unblock)
 	http.HandleFunc("/switchstate/", switchState)
@@ -49,6 +48,8 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir("images"))))
 	http.ListenAndServe(":8080", nil)
+
+	fmt.Println("Server started!")
 }
 
 func startSettings() {
@@ -75,7 +76,7 @@ func homepage(w http.ResponseWriter, r *http.Request) {
 
 		var sendsw = SendSwitches{sw.dpi, sw.tor, sw.tor_dns, sw.all_list_tor}
 
-		data := SendData{sendsw, getDomainsArray()}
+		data := SendData{sendsw, getDomainsArray(), getSubnetsArray()}
 
 		finalJson, err := json.Marshal(data)
 		if err != nil {
@@ -108,6 +109,7 @@ func unblock(w http.ResponseWriter, r *http.Request) {
 
 	if subnet != "" {
 		fmt.Println("Unblocking subnet: " + subnet)
+		saveSubnet(subnet)
 		cmd := exec.Command("ipset", "-A", "usertornet", subnet)
         err := cmd.Run()
         if err != nil {
@@ -357,6 +359,7 @@ func UpdateBlockedList(){
 
     file, err := os.Open("/tmp/lst/ipsum.lst")
     if err != nil {
+		fmt.Println("I can't open the file /tmp/lst/ipsum.lst")
         log.Fatal(err)
     }
     defer file.Close()
@@ -372,7 +375,30 @@ func UpdateBlockedList(){
             log.Println(err)
         }
     }
+
+	file, err = os.Open("/tmp/lst/subnet.lst")
+    if err != nil {
+		fmt.Println("I can't open the file /tmp/lst/subnet.lst")
+        log.Fatal(err)
+    }
+    defer file.Close()
+
+    scanner = bufio.NewScanner(file)
+    for scanner.Scan() {
+
+        fmt.Println("ipset -A tornet " + scanner.Text())
+
+        cmd := exec.Command("ipset", "-A", "tornet", scanner.Text())
+        err := cmd.Run()
+        if err != nil {
+            log.Println(err)
+        }
+    }
 }
+
+// добавить заворачивание всего трафика в tor
+
+// при старте применять правило ко всем доменам и подсетям в списках
 
 func saveDomain(domain string){
 
@@ -402,6 +428,40 @@ func getDomainsArray() []string{
 	scanner := bufio.NewScanner(file)
     for scanner.Scan() {
         fmt.Println("domain: " + scanner.Text())
+		finalArray = append(finalArray, scanner.Text())
+    }
+	return finalArray
+}
+
+
+func saveSubnet(subnet string){
+
+	subnet = subnet + "\n"
+
+	file, err := os.OpenFile("subnets.list", os.O_APPEND|os.O_WRONLY, 0600)
+    if err != nil {
+        file, err = os.Create("subnets.list")
+		if err != nil{
+			log.Println("Unable to create file subnets.list:", err) 
+		}
+		defer file.Close()
+    }
+    defer file.Close()
+
+    file.WriteString(subnet)
+}
+
+func getSubnetsArray() []string{
+	var finalArray []string
+	file, err := os.Open("subnets.list")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer file.Close()
+	
+	scanner := bufio.NewScanner(file)
+    for scanner.Scan() {
+        fmt.Println("subnet: " + scanner.Text())
 		finalArray = append(finalArray, scanner.Text())
     }
 	return finalArray
