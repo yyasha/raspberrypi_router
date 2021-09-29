@@ -3,8 +3,10 @@ let switchbtnTor = document.getElementById('switchbtn-tor');
 let switchbtnTorDNS = document.getElementById('switchbtn-tordns');
 let buttonSub = document.getElementById('buttonSub')
 let buttonAddAllDomains = document.getElementById('switchbtn-AddAllDomains')
+let buttonMasking = document.getElementById('switchbtn-Masking')
+let buttonGlobalTor = document.getElementById('switchbtn-GlobalTor')
 
-let switchesNowState = [false, false, false, false];
+let switchesNowState = [false, false, false, false, false, false];
 
 const json = JSON.parse(serverJson);
 
@@ -41,6 +43,16 @@ if (json.state.tor_dns != switchesNowState[2]){
 if (json.state.all_list != switchesNowState[3]){
     switchesNowState[3] = !switchesNowState[3];
     buttonAddAllDomains.classList.toggle('switch-on');
+}
+
+if (json.state.masking != switchesNowState[4]){
+    switchesNowState[4] = !switchesNowState[4];
+    buttonMasking.classList.toggle('switch-on');
+}
+
+if (json.state.global_tor != switchesNowState[5]){
+    switchesNowState[5] = !switchesNowState[5];
+    buttonGlobalTor.classList.toggle('switch-on');
 }
 
 switchbtnDpi.onclick = function() {
@@ -92,6 +104,32 @@ buttonAddAllDomains.onclick = function() {
         xhr.send("allblocked=true");
     } else {
         xhr.send("allblocked=false");
+    }
+};
+
+buttonMasking.onclick = function() {
+    buttonMasking.classList.toggle('switch-on');
+    switchesNowState[4] = !switchesNowState[4];
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", '/switchstate/', true);
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    if(switchesNowState[4] == true){
+        xhr.send("masking=true");
+    } else {
+        xhr.send("masking=false");
+    }
+};
+
+buttonGlobalTor.onclick = function() {
+    buttonGlobalTor.classList.toggle('switch-on');
+    switchesNowState[5] = !switchesNowState[5];
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", '/switchstate/', true);
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    if(switchesNowState[5] == true){
+        xhr.send("globaltor=true");
+    } else {
+        xhr.send("globaltor=false");
     }
 };
 

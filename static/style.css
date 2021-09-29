@@ -15,7 +15,7 @@ ul {
   flex-wrap: wrap;
   border-radius: 10px;
   padding: 20px;
-  width: 500px;
+  width: 560px;
   box-shadow: -2px -2px 5px rgba(0,0,0,0.5),
               3px 3px 5px rgba(0,0,0,0.07);
 }
@@ -119,4 +119,8 @@ ul li label {
 input[type="text"] {
    border: 2px solid black;
    border-radius: 5px;
+}
+
+.moduleDescription {
+  max-width: 150px;
 }

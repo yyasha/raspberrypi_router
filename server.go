@@ -16,6 +16,8 @@ type Switches struct {
 	tor bool
 	tor_dns bool
 	all_list_tor bool
+	masking bool
+	global_tor bool
 }
 
 type SendSwitches struct {
@@ -23,6 +25,8 @@ type SendSwitches struct {
 	Tor bool   `json:"tor"`
 	Tor_dns bool   `json:"tor_dns"`
 	All_list_tor bool  `json:"all_list"`
+	Masking bool `json:"masking"`
+	Global_tor bool `json:"global_tor"`
 }
 
 type SendData struct {
@@ -31,8 +35,8 @@ type SendData struct {
 	Subnets_array []string `json:"subnets"`
 }
 
-var sw = Switches{true, true, false, false}
-var old_sw = Switches{false, false, false, false}
+var sw = Switches{true, true, false, false, true, false}
+var old_sw = Switches{false, false, false, false, false, false}
 var updatedList bool = false
 
 func main() {
@@ -66,6 +70,7 @@ func startSettings() {
 		if err != nil {
 			log.Println(err)
 		}
+	go updateUserBlockedList()
 }
 
 func homepage(w http.ResponseWriter, r *http.Request) {
@@ -74,7 +79,7 @@ func homepage(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("GET /")
 		tmpl, _ := template.ParseFiles("templates/index.html")
 
-		var sendsw = SendSwitches{sw.dpi, sw.tor, sw.tor_dns, sw.all_list_tor}
+		var sendsw = SendSwitches{sw.dpi, sw.tor, sw.tor_dns, sw.all_list_tor, sw.masking, sw.global_tor}
 
 		data := SendData{sendsw, getDomainsArray(), getSubnetsArray()}
 
@@ -132,6 +137,8 @@ func switchState(w http.ResponseWriter, r *http.Request)  {
 	torSwitch := r.Form.Get("tor")
 	tordnsSwitch := r.Form.Get("tordns")
 	allblockedSwitch := r.Form.Get("allblocked")
+	masking := r.Form.Get("masking")
+	globalTor := r.Form.Get("globaltor")
 
 	if dpiSwitch != "" {
 		fmt.Println("DPI switch on = " + dpiSwitch)
@@ -166,6 +173,24 @@ func switchState(w http.ResponseWriter, r *http.Request)  {
 			sw.all_list_tor = true
 		} else if allblockedSwitch == "false"{
 			sw.all_list_tor = false
+		}
+	}
+
+	if masking != "" {
+		fmt.Println("Masking switch on = " + masking)
+		if masking == "true"{
+			sw.masking = true
+		} else if masking == "false"{
+			sw.masking = false
+		}
+	}
+
+	if globalTor != "" {
+		fmt.Println("Masking switch on = " + globalTor)
+		if globalTor == "true"{
+			sw.global_tor = true
+		} else if globalTor == "false"{
+			sw.global_tor = false
 		}
 	}
 
@@ -217,6 +242,26 @@ func updateSwitches()  {
 		changeIndex += 1
 	}
 
+	if sw.masking == true && old_sw.masking == false {
+		go updateMasking("start")
+		old_sw.masking = sw.masking
+		changeIndex += 1
+	} else if sw.masking == false && old_sw.masking == true {
+		go updateMasking("stop")
+		old_sw.masking = sw.masking
+		changeIndex += 1
+	}
+
+	if sw.global_tor == true && old_sw.global_tor == false {
+		go updateGlobalTor("start")
+		old_sw.global_tor = sw.global_tor
+		changeIndex += 1
+	} else if sw.global_tor == false && old_sw.global_tor == true {
+		go updateGlobalTor("stop")
+		old_sw.global_tor = sw.global_tor
+		changeIndex += 1
+	}
+
 	if changeIndex != 0 {
 		configureIptables()
 	}
@@ -258,6 +303,22 @@ func updateListTor(state string)  {
 	}
 }
 
+func updateMasking(state string) {
+	if state == "start" {
+		fmt.Println("Starting Masking...")
+	} else {
+		fmt.Println("Stopping Masking...")
+	}
+}
+
+func updateGlobalTor(state string) {
+	if state == "start" {
+		fmt.Println("Starting Global Tor...")
+	} else {
+		fmt.Println("Stopping Global Tor...")
+	}
+}
+
 func configureIptables()  {
 
 	iptablesDelAll()
@@ -270,6 +331,7 @@ func configureIptables()  {
 
 	if sw.tor == true {
 		go addUserTor()
+		go updateUserDomainsList()
 	}
 
 	if sw.tor_dns == true {
@@ -280,6 +342,14 @@ func configureIptables()  {
 
 	if sw.all_list_tor == true {
 		go addTor()
+	}
+
+	if sw.masking == true {
+		go addMasking()
+	}
+
+	if sw.global_tor == true {
+		fmt.Println("add global tor")
 	}
 }
 
@@ -349,6 +419,14 @@ func addDefaultDns()  {
     }
 }
 
+func addMasking() {
+	fmt.Println("executing the command '/bin/bash scripts/Masking.sh'")
+	err := exec.Command("/bin/bash", "scripts/Masking.sh").Run()
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+
 func UpdateBlockedList(){
 	updatedList = true
 	fmt.Println("executing the command '/bin/bash scripts/getBlocked.sh'")
@@ -396,9 +474,48 @@ func UpdateBlockedList(){
     }
 }
 
+func updateUserBlockedList() {
+	file, err := os.Open("subnets.list")
+    if err != nil {
+		fmt.Println("I can't open the file subnets.list")
+        log.Fatal(err)
+    }
+    defer file.Close()
+
+    scanner := bufio.NewScanner(file)
+    for scanner.Scan() {
+
+        fmt.Println("ipset -A usertornet " + scanner.Text())
+
+        cmd := exec.Command("ipset", "-A", "usertornet", scanner.Text())
+        err := cmd.Run()
+        if err != nil {
+            log.Println(err)
+        }
+    }
+}
+
+func updateUserDomainsList() {
+	file, err := os.Open("domains.list")
+    if err != nil {
+		fmt.Println("I can't open the file domains.list")
+        log.Fatal(err)
+    }
+    defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+    for scanner.Scan() {
+        fmt.Println("Unblocking domain: " + scanner.Text())   // iptables -t nat -A OUTPUT -p tcp --syn -d rutracker.org -j REDIRECT --to-ports 9040
+		cmd := exec.Command("iptables", "-t", "nat", "-A", "OUTPUT", "-p", "tcp", "--syn", "-d", scanner.Text(), "-j", "REDIRECT", "--to-ports", "9040")
+        err := cmd.Run()
+        if err != nil {
+            log.Println(err)
+        }
+    }
+}
+
 // добавить заворачивание всего трафика в tor
 
-// при старте применять правило ко всем доменам и подсетям в списках
 
 func saveDomain(domain string){
 
@@ -427,7 +544,6 @@ func getDomainsArray() []string{
 	
 	scanner := bufio.NewScanner(file)
     for scanner.Scan() {
-        fmt.Println("domain: " + scanner.Text())
 		finalArray = append(finalArray, scanner.Text())
     }
 	return finalArray
@@ -461,7 +577,6 @@ func getSubnetsArray() []string{
 	
 	scanner := bufio.NewScanner(file)
     for scanner.Scan() {
-        fmt.Println("subnet: " + scanner.Text())
 		finalArray = append(finalArray, scanner.Text())
     }
 	return finalArray
