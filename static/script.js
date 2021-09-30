@@ -57,14 +57,14 @@ if (json.state.global_tor != switchesNowState[5]){
 
 switchbtnDpi.onclick = function() {
     switchbtnDpi.classList.toggle('switch-on');
-    var xhr = new XMLHttpRequest();
     switchesNowState[0] = !switchesNowState[0];
+    var xhr = new XMLHttpRequest();
     xhr.open("POST", '/switchstate/', true);
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     if(switchesNowState[0] == true){
         xhr.send("dpi=true");
     } else {
-        xhr.send("dpi=false");
+        updateSwitches("dpi-off");
     }
 };
 
@@ -127,14 +127,78 @@ buttonGlobalTor.onclick = function() {
     xhr.open("POST", '/switchstate/', true);
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     if(switchesNowState[5] == true){
-        xhr.send("globaltor=true");
+        updateSwitches("globaltor-on")
     } else {
         xhr.send("globaltor=false");
     }
 };
 
+function updateSwitches(command) {
+    if(command == "dpi-off") {
+        if(switchesNowState[1] == true){
+            switchbtnTor.classList.toggle('switch-on');
+            switchesNowState[1] = !switchesNowState[1];
+        }
+        if(switchesNowState[2] == true){
+            switchbtnTorDNS.classList.toggle('switch-on');
+            switchesNowState[2] = !switchesNowState[2];
+        }
+        if(switchesNowState[3] == true){
+            buttonAddAllDomains.classList.toggle('switch-on');
+            switchesNowState[3] = !switchesNowState[3];
+        }
+        if(switchesNowState[4] == true){
+            buttonMasking.classList.toggle('switch-on');
+            switchesNowState[4] = !switchesNowState[4];
+        }
+        if(switchesNowState[5] == true){
+            buttonGlobalTor.classList.toggle('switch-on');
+            switchesNowState[5] = !switchesNowState[5];
+        }
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", '/switchstate/', true);
+        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhr.send("dpi=" + switchesNowState[0] + "&tor=" + switchesNowState[1] + "&tordns=" + switchesNowState[2] + "&allblocked=" + switchesNowState[3] + "&masking=" + switchesNowState[4] + "&globaltor=" + switchesNowState[5]);
+    }
+
+    if(command == "globaltor-on") {
+        if(switchesNowState[0] == false){
+            switchbtnDpi.classList.toggle('switch-on');
+            switchesNowState[0] = !switchesNowState[0];
+        }
+        if(switchesNowState[1] == true){
+            switchbtnTor.classList.toggle('switch-on');
+            switchesNowState[1] = !switchesNowState[1];
+        }
+        if(switchesNowState[2] == false){
+            switchbtnTorDNS.classList.toggle('switch-on');
+            switchesNowState[2] = !switchesNowState[2];
+        }
+        if(switchesNowState[3] == true){
+            buttonAddAllDomains.classList.toggle('switch-on');
+            switchesNowState[3] = !switchesNowState[3];
+        }
+        if(switchesNowState[4] == false){
+            buttonMasking.classList.toggle('switch-on');
+            switchesNowState[4] = !switchesNowState[4];
+        }
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", '/switchstate/', true);
+        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhr.send("dpi=" + switchesNowState[0] + "&tor=" + switchesNowState[1] + "&tordns=" + switchesNowState[2] + "&allblocked=" + switchesNowState[3] + "&masking=" + switchesNowState[4] + "&globaltor=" + switchesNowState[5]);
+    }
+}
+
 
 buttonSub.onclick = function() {
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", '/switchstate/', true);
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhr.send("dpi=" + switchesNowState[0] + "&tor=" + switchesNowState[1] + "&tordns=" + switchesNowState[2] + "&allblocked=" + switchesNowState[3] + "&masking=" + switchesNowState[4] + "&globaltor=" + switchesNowState[5]);
+
     var input_domain = document.getElementById("domain").value;
     var input_subnet = document.getElementById("subnet").value;
 

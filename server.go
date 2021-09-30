@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"sync"
+	"time"
 )
 
 type Switches struct {
@@ -38,6 +40,8 @@ type SendData struct {
 var sw = Switches{true, true, false, false, true, false}
 var old_sw = Switches{false, false, false, false, false, false}
 var updatedList bool = false
+var iptablesConfigureIsDone bool = true
+var iptablesSync sync.WaitGroup
 
 func main() {
 
@@ -263,8 +267,19 @@ func updateSwitches()  {
 	}
 
 	if changeIndex != 0 {
-		configureIptables()
+		go configurationWaitingRoom()
 	}
+}
+
+func configurationWaitingRoom()  {
+	if iptablesConfigureIsDone == false {
+		for tr := true; tr; tr = !iptablesConfigureIsDone{
+			time.Sleep(1 * time.Second) // Ожидание
+			fmt.Println("Waiting for the configuration")
+		}
+	}
+	fmt.Println("Configuring...")
+	go configureIptables()
 }
 
 func updateDpi(state string)  {
@@ -320,37 +335,51 @@ func updateGlobalTor(state string) {
 }
 
 func configureIptables()  {
+	iptablesConfigureIsDone = false
 
 	iptablesDelAll()
 
+	iptablesSync.Add(1)
 	go addDefaultIptables()
 
 	if sw.dpi == true {
+		iptablesSync.Add(1)
 		go addDpi()
 	}
 
 	if sw.tor == true {
+		iptablesSync.Add(1)
 		go addUserTor()
 		go updateUserDomainsList()
 	}
 
 	if sw.tor_dns == true {
+		iptablesSync.Add(1)
 		go addTorDns()
 	} else {
+		iptablesSync.Add(1)
 		go addDefaultDns()
 	}
 
 	if sw.all_list_tor == true {
+		iptablesSync.Add(1)
 		go addTor()
 	}
 
 	if sw.masking == true {
+		iptablesSync.Add(1)
 		go addMasking()
 	}
 
 	if sw.global_tor == true {
-		fmt.Println("add global tor")
+		iptablesSync.Add(1)
+		go addGlobalTor()
 	}
+
+	// Ожидание завершения работы горутин
+	iptablesSync.Wait()
+
+	iptablesConfigureIsDone = true
 }
 
 func addDefaultIptables()  {
@@ -359,6 +388,7 @@ func addDefaultIptables()  {
     if err != nil {
         log.Fatal(err)
     }
+	iptablesSync.Done()
 }
 
 func addUserTor() {
@@ -367,6 +397,7 @@ func addUserTor() {
     if err != nil {
         log.Fatal(err)
     }
+	iptablesSync.Done()
 }
 
 func iptablesDelAll() {
@@ -391,6 +422,7 @@ func addDpi()  {
     if err != nil {
         log.Println(err)
     }
+	iptablesSync.Done()
 }
 
 func addTor() {
@@ -400,6 +432,7 @@ func addTor() {
     if err != nil {
         log.Fatal(err)
     }
+	iptablesSync.Done()
 }
 
 func addTorDns()  {
@@ -409,6 +442,7 @@ func addTorDns()  {
     if err != nil {
         log.Fatal(err)
     }
+	iptablesSync.Done()
 }
 
 func addDefaultDns()  {
@@ -417,6 +451,7 @@ func addDefaultDns()  {
     if err != nil {
         log.Fatal(err)
     }
+	iptablesSync.Done()
 }
 
 func addMasking() {
@@ -425,6 +460,16 @@ func addMasking() {
     if err != nil {
         log.Fatal(err)
     }
+	iptablesSync.Done()
+}
+
+func addGlobalTor() {
+	fmt.Println("executing the command '/bin/bash scripts/startGlobalTor.sh'")
+	err := exec.Command("/bin/bash", "scripts/startGlobalTor.sh").Run()
+    if err != nil {
+        log.Fatal(err)
+    }
+	iptablesSync.Done()
 }
 
 func UpdateBlockedList(){
@@ -513,9 +558,6 @@ func updateUserDomainsList() {
         }
     }
 }
-
-// добавить заворачивание всего трафика в tor
-
 
 func saveDomain(domain string){
 
