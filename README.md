@@ -23,7 +23,6 @@ cp /home/username/build/lua-resty-socks5/socks5.lua /home/username/nginxdpi/lual
 cp /home/username/build/lua-struct/src/struct.lua /home/username/nginxdpi/lualib/
 ```
 edit /scripts/startDpi.sh:  
-> replace user to your username  
 > replace eth0 to your interface  
 > Replace /opt/nginxdpi/bin/openresty and /opt/nginxdpi/cfg/nginx.conf to your path
 
@@ -35,7 +34,7 @@ TOR installing
 ------------
 ```
 apt install tor
-nano nano /etc/tor/torrc
+sudo nano /etc/tor/torrc
 ```
 Paste in file and replace 192.168.1.1 to your ip:
 ```
