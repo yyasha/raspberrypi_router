@@ -24,7 +24,7 @@ cp /home/username/build/lua-struct/src/struct.lua /home/username/nginxdpi/lualib
 ```
 edit /scripts/startDpi.sh:  
 > replace user to your username  
-> replace eth0 to your interface
+> replace eth0 to your interface  
 > Replace /opt/nginxdpi/bin/openresty and /opt/nginxdpi/cfg/nginx.conf to your path
 
 edit /DPI/nginx.conf:  
