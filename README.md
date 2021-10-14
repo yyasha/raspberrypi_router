@@ -28,7 +28,8 @@ edit /scripts/startDpi.sh:
 
 edit /DPI/nginx.conf:  
 > Replace 127.0.0.1 and 9050 with the host and port of your SOCKS5 server!  
-> Also replace 192.168.1.1 with the IP address of the DNS server that you want to resolve the hosts to.  
+> Also replace 192.168.1.1 with the IP address of the DNS server that you want to resolve the hosts to.
+> Replace /opt/nginxdpi/bin/openresty and /opt/nginxdpi/cfg/nginx.conf to your path
 
 TOR installing
 ------------
