@@ -38,7 +38,7 @@ sudo nano /etc/tor/torrc
 ```
 Paste in file and replace 192.168.1.1 to your ip:
 ```
-SocksPort 192.168.1.66:9050
+SocksPort 192.168.1.1:9050
 SocksPort 127.0.0.1:9050
 SocksPolicy accept 192.168.1.0/24
 RunAsDaemon 1
