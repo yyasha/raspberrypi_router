@@ -12,7 +12,7 @@ git clone https://github.com/Evengard/lua-resty-socks5
 apt update && apt install -y iptables ipset libpcre3 libpcre3-dev zlib1g zlib1g-dev build-essential make libssl-dev
 
 cd openresty
-./configure --prefix=/opt/nginxdpi --with-cc=gcc --add-module=/tmp/build/lua-resty-openssl-aux-module --add-module=/tmp/build/lua-resty-openssl-aux-module/stream --add-module=/tmp/build/lua-resty-getorigdest-module/src
+./configure --prefix=/tmp/nginxdpi --with-cc=gcc --add-module=/tmp/build/lua-resty-openssl-aux-module --add-module=/tmp/build/lua-resty-openssl-aux-module/stream --add-module=/tmp/build/lua-resty-getorigdest-module/src
 make -j4 && make install
 
 mkdir /opt/nginxdpi/
