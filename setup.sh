@@ -15,7 +15,9 @@ cd openresty
 ./configure --prefix=/opt/nginxdpi --with-cc=gcc --add-module=/tmp/build/lua-resty-openssl-aux-module --add-module=/tmp/build/lua-resty-openssl-aux-module/stream --add-module=/tmp/build/lua-resty-getorigdest-module/src
 make -j4 && make install
 
+mkdir /opt/nginxdpi/
 cp -r /tmp/build/lua-resty-getorigdest-module/lualib/* /opt/nginxdpi/lualib/ 
+mkdir /opt/nginxdpi/lualib/resty/
 cp -r /tmp/build/lua-resty-openssl/lib/resty/* /opt/nginxdpi/lualib/resty/
 cp -r /tmp/build/lua-resty-openssl-aux-module/lualib/* /opt/nginxdpi/lualib/
 cp /tmp/build/lua-resty-socks5/socks5.lua /opt/nginxdpi/lualib/resty/
