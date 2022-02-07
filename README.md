@@ -62,7 +62,7 @@ Official guide: https://golang.org/doc/install
 Remaining actions
 ------------
 Open scripts/startDefaultDns.sh and replace 192.168.1.1:53 to your static dns, replace eth0 with your interface   
-Open scripts/startTorDns.sh and replace 192.168.1.1:9053 to your Tor DNS ip and port  
+Open scripts/startTorDns.sh and replace 192.168.1.1:9053 to your Tor DNS ip and port, replace eth0 with your interface  
 
 Starting the router
 ------------
