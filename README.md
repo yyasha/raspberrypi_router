@@ -23,11 +23,14 @@ cp /home/username/build/lua-resty-socks5/socks5.lua /home/username/nginxdpi/lual
 cp /home/username/build/lua-struct/src/struct.lua /home/username/nginxdpi/lualib/
 ```
 edit scripts/startDpi.sh:  
-> replace eth0 to your interface  
+> replace eth0 with your interface  
 > Replace /opt/nginxdpi/bin/openresty and /opt/nginxdpi/cfg/nginx.conf to your path
 
 edit scripts/startTor.sh, startUserTor.sh and scripts/startGlobalTor.sh:  
 > replace 9040 with your TransPort  
+
+edit scripts/startDefaultIptables.sh:    
+> replace eth0 with your interface
 
 edit DPI/nginx.conf:  
 > Replace 127.0.0.1 and 9050 with the host and port of your SOCKS5 server!  
