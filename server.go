@@ -52,7 +52,7 @@ func main() {
 	http.HandleFunc("/", homepage)
 	http.HandleFunc("/unblock/", unblock)
 	http.HandleFunc("/switchstate/", switchState)
-	http.HandleFunc("/poweroff/", poweroff)
+	// http.HandleFunc("/poweroff/", poweroff)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.Handle("/images/", http.StripPrefix("/images/", http.FileServer(http.Dir("images"))))
 	http.ListenAndServe(":8080", nil)
