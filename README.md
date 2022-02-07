@@ -26,10 +26,8 @@ edit scripts/startDpi.sh:
 > replace eth0 with your interface  
 > Replace /opt/nginxdpi/bin/openresty and /opt/nginxdpi/cfg/nginx.conf to your path
 
-edit scripts/startTor.sh, startUserTor.sh and scripts/startGlobalTor.sh:  
+edit scripts/Masking.sh, scripts/startDefaultIptables.sh, scripts/startTor.sh, startUserTor.sh and scripts/startGlobalTor.sh:  
 > replace 9040 with your TransPort  
-
-edit scripts/startDefaultIptables.sh:    
 > replace eth0 with your interface
 
 edit DPI/nginx.conf:  
@@ -63,7 +61,7 @@ Official guide: https://golang.org/doc/install
 
 Remaining actions
 ------------
-Open scripts/startDefaultDns.sh and replace 192.168.1.1:53 to your static dns   
+Open scripts/startDefaultDns.sh and replace 192.168.1.1:53 to your static dns, replace eth0 with your interface   
 Open scripts/startTorDns.sh and replace 192.168.1.1:9053 to your Tor DNS ip and port  
 
 Starting the router
