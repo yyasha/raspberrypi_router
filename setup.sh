@@ -22,3 +22,6 @@ cp -r /tmp/build/lua-resty-openssl/lib/resty/* /opt/nginxdpi/lualib/resty/
 cp -r /tmp/build/lua-resty-openssl-aux-module/lualib/* /opt/nginxdpi/lualib/
 cp /tmp/build/lua-resty-socks5/socks5.lua /opt/nginxdpi/lualib/resty/
 cp /tmp/build/lua-struct/src/struct.lua /opt/nginxdpi/lualib/
+
+mkdir
+cp DPI/nginx.conf /opt/nginxdpi/cfg/nginx.conf
